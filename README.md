@@ -22,7 +22,9 @@ My Star System is a web-based, interactive 2D solar system simulator and editor 
 ## Installation and Setup
 
 1. Clone or download the repository:
-   git clone https://github.com/yazilimciyagiz/my-star-system.git
+```bash
+git clone https://github.com/yazilimciyagiz/my-star-system.git
+
 
 2. Open index.html directly in any modern web browser or host it via a local web server.
 
