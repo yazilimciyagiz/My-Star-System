@@ -1,0 +1,1358 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Star System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #050510;
+            color: #fff;
+            overflow: hidden;
+            width: 100vw;
+            height: 100vh;
+            position: fixed;
+        }
+
+        #star-field {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            pointer-events: none;
+        }
+
+        /* INTRO SPLASH SCREEN */
+        #splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #03030a;
+            z-index: 999;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            opacity: 1;
+            transition: opacity 0.8s ease-out;
+        }
+
+        .splash-title {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: #ffffff;
+            text-shadow: 0 0 20px #00d2ff, 0 0 40px #00d2ff;
+            animation: zoomGlow 2.5s ease-in-out forwards;
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .splash-sub {
+            font-size: 1rem;
+            color: #aaa;
+            margin-top: 10px;
+            letter-spacing: 2px;
+            animation: fadeIn 2s ease-in-out forwards;
+        }
+
+        @keyframes zoomGlow {
+            0% {
+                transform: scale(0.8);
+                opacity: 0;
+                filter: blur(5px);
+            }
+            50% {
+                transform: scale(1.05);
+                opacity: 1;
+                filter: blur(0px);
+            }
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; }
+            50% { opacity: 0; }
+            100% { opacity: 1; }
+        }
+
+        .screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            letter-spacing: 3px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 10px #00d2ff;
+            text-align: center;
+        }
+
+        button {
+            background: linear-gradient(135deg, rgba(0, 210, 255, 0.2), rgba(58, 123, 213, 0.4));
+            border: 1px solid rgba(0, 210, 255, 0.5);
+            color: white;
+            padding: 12px 24px;
+            font-size: 1rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 0 15px rgba(0, 210, 255, 0.2);
+            margin: 5px;
+            backdrop-filter: blur(5px);
+            touch-action: manipulation;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, rgba(0, 210, 255, 0.5), rgba(58, 123, 213, 0.7));
+            box-shadow: 0 0 25px rgba(0, 210, 255, 0.6);
+            border-color: #00d2ff;
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, rgba(255, 65, 108, 0.2), rgba(255, 75, 43, 0.4));
+            border-color: rgba(255, 65, 108, 0.5);
+            box-shadow: 0 0 15px rgba(255, 65, 108, 0.2);
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, rgba(255, 65, 108, 0.5), rgba(255, 75, 43, 0.7));
+            box-shadow: 0 0 25px rgba(255, 65, 108, 0.6);
+            border-color: #ff416c;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, rgba(75, 108, 183, 0.2), rgba(24, 40, 72, 0.4));
+            border-color: rgba(75, 108, 183, 0.5);
+            box-shadow: 0 0 15px rgba(75, 108, 183, 0.2);
+        }
+
+        .system-list {
+            width: 100%;
+            max-width: 380px;
+            max-height: 250px;
+            overflow-y: auto;
+            background: rgba(10, 15, 30, 0.6);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            border-radius: 12px;
+            margin-bottom: 15px;
+            padding: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: inset 0 0 15px rgba(0, 210, 255, 0.05);
+        }
+
+        .system-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            margin-bottom: 8px;
+            transition: all 0.2s;
+        }
+
+        .system-item:hover {
+            border-color: rgba(0, 210, 255, 0.4);
+            background: rgba(0, 210, 255, 0.05);
+        }
+
+        .editor-container {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            position: relative;
+        }
+
+        .sidebar {
+            width: 380px;
+            height: 100%;
+            background: rgba(8, 12, 24, 0.85);
+            backdrop-filter: blur(15px);
+            border-right: 1px solid rgba(0, 210, 255, 0.2);
+            padding: 15px;
+            overflow-y: auto;
+            z-index: 10;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 25px rgba(0, 0, 0, 0.5);
+        }
+
+        .viewport {
+            flex: 1;
+            height: 100%;
+            position: relative;
+            cursor: grab;
+        }
+
+        .viewport:active {
+            cursor: grabbing;
+        }
+
+        .form-group {
+            margin-bottom: 14px;
+        }
+
+        label {
+            display: block;
+            font-size: 0.82rem;
+            color: #7ce8ff;
+            margin-bottom: 6px;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        input[type="text"], input[type="number"], select {
+            width: 100%;
+            padding: 10px 12px;
+            background: rgba(0, 20, 40, 0.6);
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        /* VARSAYILAN HTML RANGE (AYARLAMA ÇUBUĞU) TASARIMI */
+        input[type="range"] {
+            width: 100%;
+            cursor: pointer;
+            margin-top: 4px;
+        }
+
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: 1px solid rgba(0, 210, 255, 0.3);
+            width: 100%;
+            height: 38px;
+            border-radius: 8px;
+            cursor: pointer;
+            background: rgba(0, 20, 40, 0.6);
+            padding: 3px;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+            border-radius: 6px;
+        }
+
+        option {
+            background-color: #0a0f1d;
+            color: #fff;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            color: #00d2ff;
+            border-bottom: 1px solid rgba(0, 210, 255, 0.3);
+            padding-bottom: 6px;
+            margin: 15px 0 12px 0;
+            text-shadow: 0 0 8px rgba(0, 210, 255, 0.4);
+        }
+
+        .object-tree {
+            margin-top: 10px;
+            max-height: 140px;
+            overflow-y: auto;
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            background: rgba(0, 10, 20, 0.4);
+            padding: 6px;
+            border-radius: 8px;
+        }
+
+        .tree-item {
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 6px;
+            margin-bottom: 5px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .tree-item:hover {
+            background: rgba(0, 210, 255, 0.1);
+        }
+
+        .tree-item.active {
+            border-left: 3px solid #00d2ff;
+            background: rgba(0, 210, 255, 0.2);
+            box-shadow: 0 0 10px rgba(0, 210, 255, 0.15);
+        }
+
+        .tree-sub {
+            margin-left: 15px;
+        }
+
+        #space-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .top-bar {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .controls-info {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(5, 10, 20, 0.8);
+            border: 1px solid rgba(0, 210, 255, 0.2);
+            padding: 8px 14px;
+            border-radius: 8px;
+            font-size: 0.75rem;
+            color: #8be4ff;
+            pointer-events: none;
+            display: none;
+            backdrop-filter: blur(5px);
+        }
+
+        .footer-info {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: #888;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            padding-top: 10px;
+            width: 100%;
+            max-width: 350px;
+        }
+
+        .modal {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(8, 14, 28, 0.95);
+            border: 1px solid rgba(0, 210, 255, 0.4);
+            border-radius: 14px;
+            padding: 24px;
+            width: 90%;
+            max-width: 400px;
+            box-shadow: 0 0 30px rgba(0, 210, 255, 0.2), 0 0 80px rgba(0,0,0,0.9);
+            z-index: 100;
+            backdrop-filter: blur(20px);
+            animation: modalPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        @keyframes modalPop {
+            0% { transform: translate(-50%, -45%) scale(0.9); opacity: 0; }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 99;
+        }
+
+        @media (min-width: 768px) {
+            .controls-info {
+                display: block;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .editor-container {
+                flex-direction: column-reverse;
+            }
+            .sidebar {
+                width: 100%;
+                height: 48vh;
+                border-right: none;
+                border-top: 1px solid rgba(0, 210, 255, 0.2);
+            }
+            .viewport {
+                height: 52vh;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ANIMATED SPLASH SCREEN -->
+    <div id="splash-screen">
+        <div class="splash-title">Kığılcım Yazılım ve Teknoloji</div>
+        <div class="splash-sub">Presents</div>
+    </div>
+
+    <canvas id="star-field"></canvas>
+
+    <!-- CUSTOM OVERLAY & MODALS -->
+    <div id="modal-overlay" class="modal-overlay hidden"></div>
+
+    <!-- PROMPT MODAL -->
+    <div id="custom-prompt-modal" class="modal hidden">
+        <h3 id="prompt-title" style="margin-bottom: 12px; color: #00d2ff; text-align: center;">System Name</h3>
+        <div class="form-group">
+            <input type="text" id="prompt-input" autocomplete="off">
+        </div>
+        <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 15px;">
+            <button id="prompt-btn-cancel" class="btn-secondary">Cancel</button>
+            <button id="prompt-btn-ok">OK</button>
+        </div>
+    </div>
+
+    <!-- ALERT MODAL -->
+    <div id="custom-alert-modal" class="modal hidden">
+        <div id="alert-message" style="margin-bottom: 20px; color: #fff; text-align: center; font-size: 1rem; line-height: 1.4;"></div>
+        <div style="text-align: center;">
+            <button id="alert-btn-ok">OK</button>
+        </div>
+    </div>
+
+    <!-- MAIN MENU -->
+    <div id="main-menu" class="screen">
+        <h1>MY STAR SYSTEM</h1>
+        <div id="system-list-container" class="system-list"></div>
+        <div style="display: flex; gap: 10px; flex-wrap: wrap; justify-content: center;">
+            <button id="btn-create-new" data-i18n="createNew">Create New System</button>
+            <button id="btn-open-settings" class="btn-secondary" data-i18n="settings">Settings</button>
+        </div>
+        
+        <div class="footer-info">
+            <div><strong data-i18n="developer">Developer:</strong> Kığılcım Yazılım ve Teknoloji</div>
+            <div><strong data-i18n="version">Version:</strong> 1.1</div>
+        </div>
+    </div>
+
+    <!-- SETTINGS MODAL -->
+    <div id="settings-modal" class="modal hidden">
+        <h2 style="margin-bottom: 15px; color: #00d2ff; text-align: center;" data-i18n="settingsTitle">Settings</h2>
+        <div class="form-group">
+            <label data-i18n="languageSelect">Select Language</label>
+            <select id="language-selector">
+                <option value="tr">Türkçe</option>
+                <option value="en">English</option>
+                <option value="es">Español</option>
+                <option value="az">Azərbaycan Türkcəsi</option>
+            </select>
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="btn-close-settings" data-i18n="close">Close</button>
+        </div>
+    </div>
+
+    <!-- EDITOR SCREEN -->
+    <div id="editor-screen" class="screen hidden">
+        <div class="editor-container">
+            <div class="sidebar">
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <label data-i18n="systemName">System Name</label>
+                    <input type="text" id="system-name-input" onchange="updateSystemName(this.value)">
+                </div>
+                
+                <div class="object-tree" id="object-tree"></div>
+
+                <div id="editor-controls">
+                    <div class="section-title" id="control-title" data-i18n="starSettings">Star Settings</div>
+                    <div id="dynamic-form"></div>
+                </div>
+
+                <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 5px; padding-bottom: 20px;">
+                    <button id="btn-add-planet" data-i18n="addPlanet">Add Planet</button>
+                    <button id="btn-add-moon" class="btn-secondary" data-i18n="addMoon">Add Moon to Selected</button>
+                    <button id="btn-delete" class="btn-danger" data-i18n="deleteObject">Delete Object</button>
+                </div>
+            </div>
+
+            <div class="viewport" id="viewport">
+                <div class="top-bar">
+                    <button id="btn-reset-cam" class="btn-secondary" data-i18n="resetView">Reset View</button>
+                    <button id="btn-save" data-i18n="saveMenu">Save & Menu</button>
+                </div>
+                <div class="controls-info" data-i18n="controlsInfo">Pan: Drag | Zoom: Scroll / Pinch</div>
+                <canvas id="space-canvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const translations = {
+            tr: {
+                createNew: "Yeni Sistem Oluştur",
+                settings: "Ayarlar",
+                settingsTitle: "Sistem Ayarları",
+                languageSelect: "Dil Seçimi",
+                close: "Kapat",
+                developer: "Geliştirici",
+                version: "Sürüm",
+                systemName: "Sistem Adı",
+                starSettings: "Yıldız Ayarları",
+                planetSettings: "Gezegen Ayarları",
+                moonSettings: "Uydu Ayarları",
+                addPlanet: "Gezegen Ekle",
+                addMoon: "Seçilene Uydu Ekle",
+                deleteObject: "Nesneyi Sil",
+                resetView: "Görünümü Sıfırla",
+                saveMenu: "Kaydet ve Menü",
+                controlsInfo: "Kaydır: Sürükle | Yakınlaş: Kaydır / Çimdikle",
+                load: "Yükle",
+                del: "Sil",
+                noSaved: "Kayıtlı sistem bulunamadı.",
+                enterSystemName: "Sistem Adını Girin:",
+                defaultSystemName: "Alfa Sistemi",
+                starName: "Yıldız Adı",
+                starAge: "Yıldız Yaşı (1: En Genç - 100: En Yaşlı)",
+                size: "Boyut",
+                name: "Adı",
+                orbitDistance: "Yörünge Mesafesi",
+                orbitShape: "Yörünge Biçimi",
+                eccentricity: "Elips Basıklık Oranı",
+                waterRatio: "Kara / Su Oranı (Dünya Benzeri)",
+                landShape: "Kara Şekli / Kıta Yapısı",
+                color: "Temel Renk",
+                cannotDeleteStar: "Yıldızı silemezsiniz!",
+                selectPlanetFirst: "Lütfen önce bir gezegen seçin!",
+                circle: "Dairesel (Yuvarlak)",
+                ellipse: "Elips"
+            },
+            en: {
+                createNew: "Create New System",
+                settings: "Settings",
+                settingsTitle: "System Settings",
+                languageSelect: "Language",
+                close: "Close",
+                developer: "Developer",
+                version: "Version",
+                systemName: "System Name",
+                starSettings: "Star Settings",
+                planetSettings: "Planet Settings",
+                moonSettings: "Moon Settings",
+                addPlanet: "Add Planet",
+                addMoon: "Add Moon to Selected",
+                deleteObject: "Delete Object",
+                resetView: "Reset View",
+                saveMenu: "Save & Menu",
+                controlsInfo: "Pan: Drag | Zoom: Scroll / Pinch",
+                load: "Load",
+                del: "Del",
+                noSaved: "No saved systems.",
+                enterSystemName: "Enter System Name:",
+                defaultSystemName: "Alpha System",
+                starName: "Star Name",
+                starAge: "Star Age (1: Youngest - 100: Oldest)",
+                size: "Size",
+                name: "Name",
+                orbitDistance: "Orbit Distance",
+                orbitShape: "Orbit Shape",
+                eccentricity: "Elliptic Eccentricity",
+                waterRatio: "Land / Water Ratio (Earth-like)",
+                landShape: "Land Shape / Continent Pattern",
+                color: "Base Color",
+                cannotDeleteStar: "You cannot delete the star!",
+                selectPlanetFirst: "Please select a planet first!",
+                circle: "Circular",
+                ellipse: "Ellipse"
+            },
+            es: {
+                createNew: "Crear Nuevo Sistema",
+                settings: "Ajustes",
+                settingsTitle: "Ajustes del Sistema",
+                languageSelect: "Idioma",
+                close: "Cerrar",
+                developer: "Desarrollador",
+                version: "Versión",
+                systemName: "Nombre del Sistema",
+                starSettings: "Ajustes de la Estrella",
+                planetSettings: "Ajustes del Planeta",
+                moonSettings: "Ajustes de la Luna",
+                addPlanet: "Añadir Planeta",
+                addMoon: "Añadir Luna al Seleccionado",
+                deleteObject: "Eliminar Objeto",
+                resetView: "Restablecer Vista",
+                saveMenu: "Guardar y Menú",
+                controlsInfo: "Mover: Arrastrar | Zoom: Rueda / Pellizco",
+                load: "Cargar",
+                del: "Borrar",
+                noSaved: "No hay sistemas guardados.",
+                enterSystemName: "Ingrese Nombre del Sistema:",
+                defaultSystemName: "Sistema Alfa",
+                starName: "Nombre de la Estrella",
+                starAge: "Edad de la Estrella (1: Más Joven - 100: Más Vieja)",
+                size: "Tamaño",
+                name: "Nombre",
+                orbitDistance: "Distancia de Órbita",
+                orbitShape: "Forma de la Órbita",
+                eccentricity: "Excentricidad de la Elipse",
+                waterRatio: "Proporción Tierra / Agua",
+                landShape: "Forma Continental",
+                color: "Color Base",
+                cannotDeleteStar: "¡No puedes eliminar la estrella!",
+                selectPlanetFirst: "¡Por favor selecciona un planeta primero!",
+                circle: "Circular",
+                ellipse: "Elipse"
+            },
+            az: {
+                createNew: "Yeni Sistem Yarat",
+                settings: "Tənzimləmələr",
+                settingsTitle: "Sistem Tənzimləmələri",
+                languageSelect: "Dil Seçimi",
+                close: "Bağla",
+                developer: "Tərtibatçı",
+                version: "Versiya",
+                systemName: "Sistem Adı",
+                starSettings: "Ulduz Tənzimləmələri",
+                planetSettings: "Planet Tənzimləmələri",
+                moonSettings: "Peyk Tənzimləmələri",
+                addPlanet: "Planet Əlavə Et",
+                addMoon: "Seçilənə Peyk Əlavə Et",
+                deleteObject: "Obyekti Sil",
+                resetView: "Görünüşü Sıfırla",
+                saveMenu: "Yadda Saxla və Menyu",
+                controlsInfo: "Sürüşdür: Sürütlə | Yaxınlaşdır: Sürüşdür / Çimdiklə",
+                load: "Yüklə",
+                del: "Sil",
+                noSaved: "Yadda saxlanılan sistem tapılmadı.",
+                enterSystemName: "Sistem Adını Daxil Edin:",
+                defaultSystemName: "Alfa Sistemi",
+                starName: "Ulduz Adı",
+                starAge: "Ulduz Yaşı (1: Ən Gənc - 100: Ən Qocaman)",
+                size: "Ölçü",
+                name: "Adı",
+                orbitDistance: "Orbital Məsafə",
+                orbitShape: "Orbital Forması",
+                eccentricity: "Elips Basıqlıq Nisbəti",
+                waterRatio: "Quru / Su Nisbəti (Yer Analoqu)",
+                landShape: "Quru Forması / Materik Quruluşu",
+                color: "Əsas Rəng",
+                cannotDeleteStar: "Ulduzu silə bilməzsiniz!",
+                selectPlanetFirst: "Zəhmət olmasa əvvəlcə bir planet seçin!",
+                circle: "Dairəvi",
+                ellipse: "Elips"
+            }
+        };
+
+        let currentLang = localStorage.getItem('app_lang') || 'tr';
+
+        const overlay = document.getElementById('modal-overlay');
+        const promptModal = document.getElementById('custom-prompt-modal');
+        const alertModal = document.getElementById('custom-alert-modal');
+
+        function customPrompt(titleText, defaultValue, callback) {
+            document.getElementById('prompt-title').innerText = titleText;
+            const input = document.getElementById('prompt-input');
+            input.value = defaultValue || '';
+            
+            overlay.classList.remove('hidden');
+            promptModal.classList.remove('hidden');
+            input.focus();
+
+            const handleOk = () => {
+                cleanup();
+                if (callback) callback(input.value);
+            };
+
+            const handleCancel = () => {
+                cleanup();
+                if (callback) callback(null);
+            };
+
+            function cleanup() {
+                promptModal.classList.add('hidden');
+                overlay.classList.add('hidden');
+                document.getElementById('prompt-btn-ok').removeEventListener('click', handleOk);
+                document.getElementById('prompt-btn-cancel').removeEventListener('click', handleCancel);
+            }
+
+            document.getElementById('prompt-btn-ok').addEventListener('click', handleOk);
+            document.getElementById('prompt-btn-cancel').addEventListener('click', handleCancel);
+        }
+
+        function customAlert(messageText) {
+            document.getElementById('alert-message').innerText = messageText;
+            overlay.classList.remove('hidden');
+            alertModal.classList.remove('hidden');
+
+            const handleOk = () => {
+                alertModal.classList.add('hidden');
+                overlay.classList.add('hidden');
+                document.getElementById('alert-btn-ok').removeEventListener('click', handleOk);
+            };
+
+            document.getElementById('alert-btn-ok').addEventListener('click', handleOk);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                splash.style.opacity = '0';
+                setTimeout(() => {
+                    splash.style.display = 'none';
+                }, 800);
+            }, 2500);
+        });
+
+        function changeLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('app_lang', lang);
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[lang] && translations[lang][key]) {
+                    el.innerText = translations[lang][key];
+                }
+            });
+            updateSystemList();
+            renderForm();
+        }
+
+        const starCanvas = document.getElementById('star-field');
+        const starCtx = starCanvas.getContext('2d');
+        const spaceCanvas = document.getElementById('space-canvas');
+        const spaceCtx = spaceCanvas.getContext('2d');
+        const viewport = document.getElementById('viewport');
+
+        let stars = [];
+        function initStars() {
+            starCanvas.width = window.innerWidth;
+            starCanvas.height = window.innerHeight;
+            stars = [];
+            for (let i = 0; i < 200; i++) {
+                stars.push({
+                    x: Math.random() * starCanvas.width,
+                    y: Math.random() * starCanvas.height,
+                    size: Math.random() * 1.5,
+                    alpha: Math.random()
+                });
+            }
+        }
+
+        function renderStars() {
+            starCtx.clearRect(0, 0, starCanvas.width, starCanvas.height);
+            starCtx.fillStyle = "#ffffff";
+            stars.forEach(star => {
+                starCtx.globalAlpha = star.alpha;
+                starCtx.beginPath();
+                starCtx.arc(star.x, star.y, star.size, 0, Math.PI * 2);
+                starCtx.fill();
+                star.alpha += (Math.random() - 0.5) * 0.01;
+                if (star.alpha < 0.1) star.alpha = 0.1;
+                if (star.alpha > 1) star.alpha = 1;
+            });
+            requestAnimationFrame(renderStars);
+        }
+
+        let systems = JSON.parse(localStorage.getItem('my_star_systems') || '[]');
+        let currentSystem = null;
+        let selectedId = null;
+
+        let zoom = 1;
+        let panX = 0;
+        let panY = 0;
+        let isDragging = false;
+        let startX = 0;
+        let startY = 0;
+        let initialPinchDistance = null;
+
+        const starTypes = [
+            { name: "O (Blue - Youngest)", color: "#00bfff" },
+            { name: "B (Blue-White)", color: "#87cefa" },
+            { name: "A (White)", color: "#ffffff" },
+            { name: "F (Yellow-White)", color: "#fffdd0" },
+            { name: "G (Yellow)", color: "#ffd700" },
+            { name: "K (Orange)", color: "#ff8c00" },
+            { name: "M (Red - Oldest)", color: "#ff4500" }
+        ];
+
+        function getStarColorByAge(age) {
+            const index = Math.min(Math.floor((age / 100) * starTypes.length), starTypes.length - 1);
+            return starTypes[index].color;
+        }
+
+        const mainMenu = document.getElementById('main-menu');
+        const editorScreen = document.getElementById('editor-screen');
+        const settingsModal = document.getElementById('settings-modal');
+        const systemListContainer = document.getElementById('system-list-container');
+        const dynamicForm = document.getElementById('dynamic-form');
+        const objectTree = document.getElementById('object-tree');
+        const langSelector = document.getElementById('language-selector');
+
+        langSelector.value = currentLang;
+        langSelector.addEventListener('change', (e) => {
+            changeLanguage(e.target.value);
+        });
+
+        document.getElementById('btn-open-settings').addEventListener('click', () => {
+            overlay.classList.remove('hidden');
+            settingsModal.classList.remove('hidden');
+        });
+
+        document.getElementById('btn-close-settings').addEventListener('click', () => {
+            settingsModal.classList.add('hidden');
+            overlay.classList.add('hidden');
+        });
+
+        function updateSystemList() {
+            systemListContainer.innerHTML = '';
+            if (systems.length === 0) {
+                systemListContainer.innerHTML = `<div style="text-align:center; color:#aaa; padding:10px;">${translations[currentLang].noSaved}</div>`;
+                return;
+            }
+            systems.forEach((sys, index) => {
+                const item = document.createElement('div');
+                item.className = 'system-item';
+                item.innerHTML = `
+                    <span>${sys.name}</span>
+                    <div>
+                        <button onclick="loadSystem(${index})">${translations[currentLang].load}</button>
+                        <button class="btn-danger" onclick="deleteSystem(${index})">${translations[currentLang].del}</button>
+                    </div>
+                `;
+                systemListContainer.appendChild(item);
+            });
+        }
+
+        document.getElementById('btn-create-new').addEventListener('click', () => {
+            customPrompt(translations[currentLang].enterSystemName, translations[currentLang].defaultSystemName, (name) => {
+                if (!name) return;
+                currentSystem = {
+                    id: Date.now(),
+                    name: name,
+                    star: {
+                        name: "Star",
+                        age: 10,
+                        size: 45
+                    },
+                    planets: []
+                };
+                selectedId = 'star';
+                resetCamera();
+                openEditor();
+            });
+        });
+
+        function loadSystem(index) {
+            currentSystem = JSON.parse(JSON.stringify(systems[index]));
+            selectedId = 'star';
+            resetCamera();
+            openEditor();
+        }
+
+        function deleteSystem(index) {
+            systems.splice(index, 1);
+            localStorage.setItem('my_star_systems', JSON.stringify(systems));
+            updateSystemList();
+        }
+
+        function resetCamera() {
+            zoom = 1;
+            panX = 0;
+            panY = 0;
+        }
+
+        document.getElementById('btn-reset-cam').addEventListener('click', resetCamera);
+
+        function openEditor() {
+            mainMenu.classList.add('hidden');
+            editorScreen.classList.remove('hidden');
+            document.getElementById('system-name-input').value = currentSystem.name;
+            resizeSpaceCanvas();
+            renderTree();
+            renderForm();
+        }
+
+        function updateSystemName(newName) {
+            if (!newName) return;
+            currentSystem.name = newName;
+        }
+
+        document.getElementById('btn-save').addEventListener('click', () => {
+            const idx = systems.findIndex(s => s.id === currentSystem.id);
+            if (idx >= 0) {
+                systems[idx] = currentSystem;
+            } else {
+                systems.push(currentSystem);
+            }
+            localStorage.setItem('my_star_systems', JSON.stringify(systems));
+            editorScreen.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+            updateSystemList();
+        });
+
+        function renderTree() {
+            objectTree.innerHTML = '';
+            
+            const starItem = document.createElement('div');
+            starItem.className = `tree-item ${selectedId === 'star' ? 'active' : ''}`;
+            starItem.innerText = `⭐ ${currentSystem.star.name}`;
+            starItem.onclick = () => { selectedId = 'star'; renderTree(); renderForm(); };
+            objectTree.appendChild(starItem);
+
+            currentSystem.planets.forEach((planet, pIdx) => {
+                const pId = `p_${pIdx}`;
+                const planetItem = document.createElement('div');
+                planetItem.className = `tree-item ${selectedId === pId ? 'active' : ''}`;
+                planetItem.innerText = `🪐 ${planet.name}`;
+                planetItem.onclick = () => { selectedId = pId; renderTree(); renderForm(); };
+                objectTree.appendChild(planetItem);
+
+                planet.moons.forEach((moon, mIdx) => {
+                    const mId = `p_${pIdx}_m_${mIdx}`;
+                    const moonItem = document.createElement('div');
+                    moonItem.className = `tree-item tree-sub ${selectedId === mId ? 'active' : ''}`;
+                    moonItem.innerText = `🌙 ${moon.name}`;
+                    moonItem.onclick = () => { selectedId = mId; renderTree(); renderForm(); };
+                    objectTree.appendChild(moonItem);
+                });
+            });
+        }
+
+        function getSelectedObject() {
+            if (selectedId === 'star') return { type: 'star', obj: currentSystem.star };
+            if (!selectedId) return null;
+            const parts = selectedId.split('_');
+            if (parts.length === 2) {
+                return { type: 'planet', obj: currentSystem.planets[parts[1]], pIdx: parseInt(parts[1]) };
+            } else if (parts.length === 4) {
+                return { 
+                    type: 'moon', 
+                    obj: currentSystem.planets[parts[1]].moons[parts[3]], 
+                    pIdx: parseInt(parts[1]), 
+                    mIdx: parseInt(parts[3]) 
+                };
+            }
+            return null;
+        }
+
+        function renderForm() {
+            dynamicForm.innerHTML = '';
+            const target = getSelectedObject();
+            if (!target) return;
+
+            const obj = target.obj;
+            const t = translations[currentLang];
+
+            if (target.type === 'star') {
+                document.getElementById('control-title').innerText = t.starSettings;
+                dynamicForm.innerHTML = `
+                    <div class="form-group">
+                        <label>${t.starName}</label>
+                        <input type="text" value="${obj.name}" onchange="updateData('name', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>${t.starAge}</label>
+                        <input type="range" min="1" max="100" value="${obj.age}" oninput="updateData('age', parseFloat(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>${t.size}</label>
+                        <input type="range" min="20" max="120" value="${obj.size}" oninput="updateData('size', parseFloat(this.value))">
+                    </div>
+                `;
+            } else if (target.type === 'planet' || target.type === 'moon') {
+                document.getElementById('control-title').innerText = target.type === 'planet' ? t.planetSettings : t.moonSettings;
+                const isPlanet = target.type === 'planet';
+                
+                const isEllipse = (obj.orbitType || 'circle') === 'ellipse';
+
+                dynamicForm.innerHTML = `
+                    <div class="form-group">
+                        <label>${t.name}</label>
+                        <input type="text" value="${obj.name}" onchange="updateData('name', this.value)">
+                    </div>
+                    <div class="form-group">
+                        <label>${t.size}</label>
+                        <input type="range" min="5" max="${isPlanet ? 40 : 15}" value="${obj.size}" oninput="updateData('size', parseFloat(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>${t.orbitDistance}</label>
+                        <input type="range" min="${isPlanet ? 80 : 25}" max="${isPlanet ? 1200 : 150}" value="${obj.distance}" oninput="updateData('distance', parseFloat(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>${t.orbitShape}</label>
+                        <select onchange="updateData('orbitType', this.value); renderForm();">
+                            <option value="circle" ${(obj.orbitType || 'circle') === 'circle' ? 'selected' : ''}>${t.circle}</option>
+                            <option value="ellipse" ${(obj.orbitType || 'circle') === 'ellipse' ? 'selected' : ''}>${t.ellipse}</option>
+                        </select>
+                    </div>
+                    ${isEllipse ? `
+                    <div class="form-group">
+                        <label>${t.eccentricity}</label>
+                        <input type="range" min="0.1" max="0.8" step="0.05" value="${obj.eccentricity || 0.4}" oninput="updateData('eccentricity', parseFloat(this.value))">
+                    </div>
+                    ` : ''}
+                    <div class="form-group">
+                        <label>${t.waterRatio}</label>
+                        <input type="range" min="0" max="100" value="${obj.waterRatio !== undefined ? obj.waterRatio : 70}" oninput="updateData('waterRatio', parseFloat(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>${t.landShape}</label>
+                        <input type="range" min="1" max="50" value="${obj.landSeed || 12}" oninput="updateData('landSeed', parseInt(this.value))">
+                    </div>
+                    <div class="form-group">
+                        <label>${t.color}</label>
+                        <input type="color" value="${obj.color || '#2b82c9'}" onchange="updateData('color', this.value)">
+                    </div>
+                `;
+            }
+        }
+
+        function updateData(key, value) {
+            const target = getSelectedObject();
+            if (target) {
+                target.obj[key] = value;
+                renderTree();
+            }
+        }
+
+        document.getElementById('btn-add-planet').addEventListener('click', () => {
+            const pCount = currentSystem.planets.length;
+            currentSystem.planets.push({
+                name: `Planet ${pCount + 1}`,
+                size: 18,
+                distance: 140 + pCount * 120,
+                orbitType: 'circle',
+                eccentricity: 0.3,
+                waterRatio: 70,
+                landSeed: Math.floor(Math.random() * 40) + 1,
+                color: '#2b82c9',
+                angle: Math.random() * Math.PI * 2,
+                speed: 0.003 + Math.random() * 0.003,
+                moons: []
+            });
+            selectedId = `p_${currentSystem.planets.length - 1}`;
+            renderTree();
+            renderForm();
+        });
+
+        document.getElementById('btn-add-moon').addEventListener('click', () => {
+            const target = getSelectedObject();
+            if (!target || (target.type !== 'planet' && target.type !== 'moon')) {
+                customAlert(translations[currentLang].selectPlanetFirst);
+                return;
+            }
+            const pIdx = target.pIdx;
+            const planet = currentSystem.planets[pIdx];
+            const mCount = planet.moons.length;
+            planet.moons.push({
+                name: `${planet.name} Moon ${mCount + 1}`,
+                size: 5,
+                distance: 30 + mCount * 15,
+                orbitType: 'circle',
+                eccentricity: 0.2,
+                waterRatio: 0,
+                landSeed: Math.floor(Math.random() * 40) + 1,
+                color: '#aaaaaa',
+                angle: Math.random() * Math.PI * 2,
+                speed: 0.015 + Math.random() * 0.01
+            });
+            selectedId = `p_${pIdx}_m_${planet.moons.length - 1}`;
+            renderTree();
+            renderForm();
+        });
+
+        document.getElementById('btn-delete').addEventListener('click', () => {
+            const target = getSelectedObject();
+            if (!target || target.type === 'star') {
+                customAlert(translations[currentLang].cannotDeleteStar);
+                return;
+            }
+            if (target.type === 'planet') {
+                currentSystem.planets.splice(target.pIdx, 1);
+            } else if (target.type === 'moon') {
+                currentSystem.planets[target.pIdx].moons.splice(target.mIdx, 1);
+            }
+            selectedId = 'star';
+            renderTree();
+            renderForm();
+        });
+
+        // Mouse & Touch Pan/Zoom Support
+        viewport.addEventListener('mousedown', (e) => {
+            if (e.target === spaceCanvas) {
+                isDragging = true;
+                startX = e.clientX - panX;
+                startY = e.clientY - panY;
+            }
+        });
+
+        window.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                panX = e.clientX - startX;
+                panY = e.clientY - startY;
+            }
+        });
+
+        window.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+
+        viewport.addEventListener('touchstart', (e) => {
+            if (e.touches.length === 1 && e.target === spaceCanvas) {
+                isDragging = true;
+                startX = e.touches[0].clientX - panX;
+                startY = e.touches[0].clientY - panY;
+            } else if (e.touches.length === 2) {
+                isDragging = false;
+                initialPinchDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchmove', (e) => {
+            if (isDragging && e.touches.length === 1) {
+                panX = e.touches[0].clientX - startX;
+                panY = e.touches[0].clientY - startY;
+            } else if (e.touches.length === 2 && initialPinchDistance) {
+                const currentDistance = Math.hypot(
+                    e.touches[0].clientX - e.touches[1].clientX,
+                    e.touches[0].clientY - e.touches[1].clientY
+                );
+                const factor = currentDistance / initialPinchDistance;
+                zoom = Math.min(Math.max(0.15, zoom * factor), 4);
+                initialPinchDistance = currentDistance;
+            }
+        }, { passive: false });
+
+        viewport.addEventListener('touchend', () => {
+            isDragging = false;
+            initialPinchDistance = null;
+        });
+
+        viewport.addEventListener('wheel', (e) => {
+            e.preventDefault();
+            const zoomSpeed = 0.1;
+            if (e.deltaY < 0) {
+                zoom += zoomSpeed * zoom;
+            } else {
+                zoom -= zoomSpeed * zoom;
+            }
+            zoom = Math.min(Math.max(0.15, zoom), 4);
+        }, { passive: false });
+
+        function resizeSpaceCanvas() {
+            spaceCanvas.width = viewport.clientWidth;
+            spaceCanvas.height = viewport.clientHeight;
+        }
+
+        window.addEventListener('resize', () => {
+            initStars();
+            resizeSpaceCanvas();
+        });
+
+        // GEZEGEN YÜZEYİ (KARA/SU ŞEKİLLERİ) ÇİZİM BİLEŞENİ
+        function drawPlanetSurface(ctx, px, py, radius, waterRatio, landSeed, baseColor) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.arc(px, py, radius, 0, Math.PI * 2);
+            ctx.clip();
+
+            // Temel Su Rengi (Taban)
+            ctx.fillStyle = baseColor || '#1a5276';
+            ctx.fillRect(px - radius, py - radius, radius * 2, radius * 2);
+
+            const landPercent = 100 - (waterRatio !== undefined ? waterRatio : 70);
+            if (landPercent > 0) {
+                ctx.fillStyle = '#27ae60'; // Kara/Orman Rengi
+                const seed = landSeed || 12;
+                const blobCount = Math.floor((landPercent / 100) * 8) + 1;
+
+                for (let i = 0; i < blobCount; i++) {
+                    const angle = (i * (Math.PI * 2 / blobCount)) + (seed * 0.1);
+                    const dist = (Math.sin(i * 3 + seed) * 0.35 + 0.35) * radius;
+                    const bx = px + Math.cos(angle) * dist;
+                    const by = py + Math.sin(angle) * dist;
+                    const bRadius = (radius * (landPercent / 100)) * (0.4 + (i % 3) * 0.2);
+
+                    ctx.beginPath();
+                    ctx.arc(bx, by, bRadius, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Dünya Benzeri Atmosfer/Gölge Efekti
+            const grad = ctx.createRadialGradient(
+                px - radius * 0.3, py - radius * 0.3, radius * 0.2,
+                px, py, radius
+            );
+            grad.addColorStop(0, 'rgba(255,255,255,0.25)');
+            grad.addColorStop(0.8, 'rgba(0,0,0,0.1)');
+            grad.addColorStop(1, 'rgba(0,0,0,0.6)');
+
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(px, py, radius, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        // YÖRÜNGE HESAPLAMA (ÇEMBER VEYA ELİPS)
+        function getOrbitPosition(distance, angle, orbitType, eccentricity) {
+            const isEllipse = orbitType === 'ellipse';
+            const ecc = isEllipse ? (eccentricity || 0.4) : 0;
+            
+            // a: Yarı majör eksen, b: Yarı minör eksen
+            const a = parseFloat(distance);
+            const b = a * Math.sqrt(1 - ecc * ecc);
+
+            const x = Math.cos(angle) * a;
+            const y = Math.sin(angle) * b;
+
+            return { x, y, a, b };
+        }
+
+        function renderSpace() {
+            if (!editorScreen.classList.contains('hidden') && currentSystem) {
+                spaceCtx.clearRect(0, 0, spaceCanvas.width, spaceCanvas.height);
+                
+                spaceCtx.save();
+                
+                const centerX = spaceCanvas.width / 2 + panX;
+                const centerY = spaceCanvas.height / 2 + panY;
+
+                spaceCtx.translate(centerX, centerY);
+                spaceCtx.scale(zoom, zoom);
+
+                // YILDIZ ÇİZİMİ
+                const starColor = getStarColorByAge(currentSystem.star.age);
+                spaceCtx.beginPath();
+                spaceCtx.arc(0, 0, currentSystem.star.size, 0, Math.PI * 2);
+                spaceCtx.fillStyle = starColor;
+                spaceCtx.shadowBlur = 40;
+                spaceCtx.shadowColor = starColor;
+                spaceCtx.fill();
+                spaceCtx.shadowBlur = 0;
+
+                spaceCtx.fillStyle = "#fff";
+                spaceCtx.font = "14px sans-serif";
+                spaceCtx.textAlign = "center";
+                spaceCtx.fillText(currentSystem.star.name, 0, parseFloat(currentSystem.star.size) + 18);
+
+                // GEZEGENLERİ ÇİZ
+                currentSystem.planets.forEach((planet, pIdx) => {
+                    planet.angle += parseFloat(planet.speed);
+
+                    const pos = getOrbitPosition(planet.distance, planet.angle, planet.orbitType, planet.eccentricity);
+                    const px = pos.x;
+                    const py = pos.y;
+
+                    // Yörünge Çizgisi
+                    spaceCtx.beginPath();
+                    if (planet.orbitType === 'ellipse') {
+                        spaceCtx.ellipse(0, 0, pos.a, pos.b, 0, 0, Math.PI * 2);
+                    } else {
+                        spaceCtx.arc(0, 0, pos.a, 0, Math.PI * 2);
+                    }
+                    spaceCtx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+                    spaceCtx.lineWidth = 1 / zoom;
+                    spaceCtx.stroke();
+
+                    // Gezegen Gövdesi ve Kara/Su Detayları
+                    drawPlanetSurface(spaceCtx, px, py, parseFloat(planet.size), planet.waterRatio, planet.landSeed, planet.color);
+
+                    // Seçim Halkası
+                    if (selectedId === `p_${pIdx}`) {
+                        spaceCtx.beginPath();
+                        spaceCtx.arc(px, py, parseFloat(planet.size) + 5, 0, Math.PI * 2);
+                        spaceCtx.strokeStyle = "#00d2ff";
+                        spaceCtx.lineWidth = 2 / zoom;
+                        spaceCtx.stroke();
+                    }
+
+                    spaceCtx.fillStyle = "#eee";
+                    spaceCtx.font = "12px sans-serif";
+                    spaceCtx.fillText(planet.name, px, py + parseFloat(planet.size) + 14);
+
+                    // UYDU ÇİZİMİ
+                    planet.moons.forEach((moon, mIdx) => {
+                        moon.angle += parseFloat(moon.speed);
+
+                        const mPos = getOrbitPosition(moon.distance, moon.angle, moon.orbitType, moon.eccentricity);
+                        const mx = px + mPos.x;
+                        const my = py + mPos.y;
+
+                        // Uydu Yörünge Çizgisi
+                        spaceCtx.beginPath();
+                        if (moon.orbitType === 'ellipse') {
+                            spaceCtx.ellipse(px, py, mPos.a, mPos.b, 0, 0, Math.PI * 2);
+                        } else {
+                            spaceCtx.arc(px, py, mPos.a, 0, Math.PI * 2);
+                        }
+                        spaceCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
+                        spaceCtx.lineWidth = 1 / zoom;
+                        spaceCtx.stroke();
+
+                        // Uydu Gövdesi
+                        drawPlanetSurface(spaceCtx, mx, my, parseFloat(moon.size), moon.waterRatio, moon.landSeed, moon.color);
+
+                        if (selectedId === `p_${pIdx}_m_${mIdx}`) {
+                            spaceCtx.beginPath();
+                            spaceCtx.arc(mx, my, parseFloat(moon.size) + 3, 0, Math.PI * 2);
+                            spaceCtx.strokeStyle = "#00d2ff";
+                            spaceCtx.lineWidth = 1.5 / zoom;
+                            spaceCtx.stroke();
+                        }
+                    });
+                });
+
+                spaceCtx.restore();
+            }
+            requestAnimationFrame(renderSpace);
+        }
+
+        initStars();
+        renderStars();
+        changeLanguage(currentLang);
+        renderSpace();
+    </script>
+</body>
+</html>
