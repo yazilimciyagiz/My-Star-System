@@ -28,6 +28,10 @@ My Star System is a web-based, interactive 2D solar system simulator and editor 
 
 2. Open index.html directly in any modern web browser or host it via a local web server.
 
+## Note
+
+This project utilized artificial intelligence technologies.
+
 ## License
 
 This project is licensed under the GNU General Public License v3.0 (GPL-3.0).
