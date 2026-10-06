@@ -1,5 +1,7 @@
 # My Star System
 
+​Copyright (C) 2026 yazilimciyagiz
+
 My Star System is a web-based, interactive 2D solar system simulator and editor built with HTML5 Canvas and JavaScript. It allows users to create, customize, and manage unique planetary systems with customized stars, planets, and orbiting moons in real time.
 
 ## Features
